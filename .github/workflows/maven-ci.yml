@@ -15,7 +15,7 @@ jobs:
   maven_test:
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      contents: read
     steps:
       # The uses: keyword invokes a GitHub action:
       # https://github.com/marketplace/actions/checkout
