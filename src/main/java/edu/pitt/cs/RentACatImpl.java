@@ -19,18 +19,16 @@ public class RentACatImpl implements RentACat {
 
 	public boolean returnCat(int id) {
 		// TODO: Fill in
-		for (Cat cat : cats) {
-			if (cat.getId() == id) {
-				if (cat.getRented()) {
-					cat.returnCat();
-					System.out.println("Welcome back, " + cat.getName() + "!");
-					return true;
-				}
-				System.out.println(cat.getName() + " is already here!");
-				return false;
+		Cat c;
+		if (getCat(id) != null){
+			c = getCat(id);
+			if (c.getRented() == true){
+				c.returnCat();
+				System.out.println("Welcome back, " + c.getName() + "!");
+				return true;
 			}
-		}
-		System.out.println("Invalid cat ID.");
+			System.out.println(c.getName() + " is already here!");
+		} 
 		return false;
 	}
 
@@ -46,17 +44,17 @@ public class RentACatImpl implements RentACat {
 
 	public boolean rentCat(int id) {
 		// TODO: Fill in
-		for (Cat cat : cats) {
-			if (cat.getId() == id) {
-				if (!cat.getRented()) {
-					cat.rentCat();
-					System.out.println(cat.getName() + " has been rented.");
-					return true;
-				}
-				System.out.println("Sorry, " + cat.getName() + " is not here!");
+		Cat c;
+		if (getCat(id) != null){
+			c = getCat(id);
+			if (c.getRented() == true){
+				System.out.println("Sorry, " + c.getName() + " is not here!");
 				return false;
 			}
-		}
+			c.rentCat();
+			System.out.println(c.getName() + " has been rented.");
+			return true;
+		} 
 		return false;
 	}
 
@@ -73,13 +71,11 @@ public class RentACatImpl implements RentACat {
 		// TODO: Fill in
 		// if cat exists, rename the cat
 		// if cat does not exist, return false
-		for (Cat cat : cats) {
-			if (getCat(id) != null && cat.getId() == id) {
-				getCat(id).renameCat(name);
-				return true;
-			}
+		if (getCat(id)!=null){
+			Cat cat = getCat(id);
+			cat.renameCat(name);
+			return true;
 		}
-		System.out.println("Invalid cat ID.");
 		return false;
 
 	}

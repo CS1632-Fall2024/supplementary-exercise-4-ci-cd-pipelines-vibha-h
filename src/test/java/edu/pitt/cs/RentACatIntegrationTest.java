@@ -12,6 +12,7 @@ import static org.mockito.Mockito.*;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
@@ -111,16 +112,15 @@ public class RentACatIntegrationTest {
 	public void testGetCatNullNumCats0() {
 		// TODO: Fill in
 		try {
-			Class<?> rentACatClass = r.getClass();
-			Method getCatMethod = rentACatClass.getDeclaredMethod("getCat", int.class);
-			getCatMethod.setAccessible(true);
-			Object result = getCatMethod.invoke(r, 2);
-			assertNull(result);
-			assertEquals("Invalid cat ID." + newline, out.toString());
-
-		} catch (Exception e) {
-			e.printStackTrace();
-			fail("failed" + e.getMessage());
+			Method method = r.getClass().getDeclaredMethod("getCat", int.class);
+			method.setAccessible(true);
+			Object returnValue = method.invoke(r, 2);
+			Cat ret = (Cat) returnValue;
+			assertEquals(null, ret);
+			assertEquals("Invalid cat ID.\n", out.toString());
+		} catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException ex) { // The method does not
+																									// exist
+			fail();
 		}
 	}
 
@@ -146,18 +146,15 @@ public class RentACatIntegrationTest {
 			r.addCat(c1);
 			r.addCat(c2);
 			r.addCat(c3);
-			
-			java.lang.reflect.Method getCatMethod = r.getClass().getDeclaredMethod("getCat", int.class);
-			getCatMethod.setAccessible(true);
+			Method method = r.getClass().getDeclaredMethod("getCat", int.class);
+			method.setAccessible(true);
+			Object returnValue = method.invoke(r, 2);
 
-			Object result = getCatMethod.invoke(r, 2);
-			assertNotNull(result);
-			Cat returnedCat = (Cat) result;
-			assertEquals(2, returnedCat.getId());
-
-		} catch (Exception e) {
-			e.printStackTrace();
-			fail("failed: " + e.getMessage());
+			Cat ret = (Cat) returnValue;
+			assertNotNull("Return value null", ret);
+			assertEquals(2, ret.getId());
+		} catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException ex) {
+			fail();
 		}
 
 	}
@@ -174,8 +171,8 @@ public class RentACatIntegrationTest {
 	@Test
 	public void testListCatsNumCats0() {
 		// TODO: Fill in
-		String result = r.listCats();
-		assertEquals("", result);
+		String ret = r.listCats();
+		assertEquals("", ret);
 	}
 
 	/**
@@ -217,8 +214,9 @@ public class RentACatIntegrationTest {
 	public void testRenameFailureNumCats0() {
 		// TODO: Fill in
 		boolean result = r.renameCat(2, "Garfield");
-		assertFalse(result);
-		assertEquals("Invalid cat ID." + newline, out.toString());
+		assertEquals(false, result);
+		assertNotEquals("Garfield", c2.getName());
+		assertEquals("Invalid cat ID.\n", out.toString());
 	}
 
 	/**
@@ -238,7 +236,7 @@ public class RentACatIntegrationTest {
 		r.addCat(c2);
 		r.addCat(c3);
 		boolean result = r.renameCat(2, "Garfield");
-		assertTrue(result);
+		assertEquals(true, result);
 		assertEquals("Garfield", c2.getName());
 	}
 
@@ -260,8 +258,9 @@ public class RentACatIntegrationTest {
 		r.addCat(c2);
 		r.addCat(c3);
 		boolean result = r.rentCat(2);
-		assertTrue(result);
-		assertEquals("Old Deuteronomy has been rented." + newline, out.toString());
+		assertEquals(true, result);
+		assertEquals(true, c2.getRented());
+		assertEquals("Old Deuteronomy has been rented.\n", out.toString());
 	}
 
 	/**
@@ -282,11 +281,11 @@ public class RentACatIntegrationTest {
 		r.addCat(c1);
 		r.addCat(c2);
 		r.addCat(c3);
-		r.rentCat(2);
-		out.reset();
+		c2.rentCat();
 		boolean result = r.rentCat(2);
-		assertFalse(result);
-		assertEquals("Sorry, Old Deuteronomy is not here!" + newline, out.toString());
+		assertEquals(false, result);
+		assertEquals(true, c2.getRented());
+		assertEquals("Sorry, Old Deuteronomy is not here!\n", out.toString());
 	}
 
 	/**
@@ -308,10 +307,10 @@ public class RentACatIntegrationTest {
 		r.addCat(c2);
 		r.addCat(c3);
 		r.rentCat(2);
-		out.reset();
 		boolean result = r.returnCat(2);
-		assertTrue(result);
-		assertEquals("Welcome back, Old Deuteronomy!" + newline, out.toString());
+		assertEquals(true, result);
+		assertEquals(false, c2.getRented());
+		assertEquals("Welcome back, Old Deuteronomy!\n", out.toString());
 	}
 
 	/**
@@ -332,9 +331,9 @@ public class RentACatIntegrationTest {
 		r.addCat(c2);
 		r.addCat(c3);
 		boolean result = r.returnCat(2);
-		assertFalse(result);
-		assertEquals("Old Deuteronomy is already here!" + newline, out.toString());
-
+		assertEquals(false, result);
+		assertEquals(false, c2.getRented());
+		assertEquals("Old Deuteronomy is already here!\n", out.toString());
 	}
 
 }
