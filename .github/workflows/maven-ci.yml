@@ -48,7 +48,7 @@ jobs:
     needs: [maven_test]  # Enforces that maven_test runs first
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      contents: write #write permission usually grants read permissions as well
     steps:
       - name: Restore cached build
         uses: actions/cache@v3
