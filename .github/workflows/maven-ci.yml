@@ -10,7 +10,6 @@ on:
     branches: [ "main" ]
 
 jobs:
-  
   # Runs the Maven test phase on the project
   maven_test:
     runs-on: ubuntu-latest
@@ -40,7 +39,7 @@ jobs:
       - name: Cache build
         uses: actions/cache@v3
         with:
-          key: cached-build-${{github.sha}}
+          key: cached-build-${{ github.sha }}
           path: .
 
   # Uploads dependency graph to GitHub to receive Dependabot alerts 
@@ -48,13 +47,47 @@ jobs:
     needs: [maven_test]  # Enforces that maven_test runs first
     runs-on: ubuntu-latest
     permissions:
-      contents: write #write permission usually grants read permissions as well
+      contents: write # Write permission usually grants read permissions as well
     steps:
       - name: Restore cached build
         uses: actions/cache@v3
         with:
-          key: cached-build-${{github.sha}}
+          key: cached-build-${{ github.sha }}
           path: .
       # https://github.com/marketplace/actions/maven-dependency-tree-dependency-submission
       - name: Update dependency graph
         uses: advanced-security/maven-dependency-submission-action@v3
+
+  # SonarQube Cloud job for static code analysis
+  build:
+    name: SonarQube Cloud
+    needs: [maven_test]  # Enforces that maven_test runs first
+    runs-on: ubuntu-latest
+    steps:
+      - name: Restore cached build
+        uses: actions/cache@v3
+        with:
+          key: cached-build-${{ github.sha }}
+          path: .
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: 17
+          distribution: 'zulu' # Alternative distribution options are available.
+      - name: Cache SonarQube Cloud packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
+      - name: Cache Maven packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
+      - name: Build and analyze
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=CS1632-Fall2024_supplementary-exercise-4-ci-cd-pipelines-vibha-h
